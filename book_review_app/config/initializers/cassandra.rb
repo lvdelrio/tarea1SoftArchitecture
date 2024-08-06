@@ -1,14 +1,10 @@
 require 'cassandra'
 
-module CassandraConnection
-  def self.client
-    @client ||= Cassandra.cluster(
-      hosts: ['127.0.0.1'],
-      port: 9042
-    )
-  end
+cassandra_config = Rails.application.config_for(:cassandra)
 
-  def self.session
-    @session ||= client.connect('book_review_development')
-  end
-end
+CASSANDRA_CLIENT = Cassandra.cluster(
+  hosts: cassandra_config['hosts'],
+  port: cassandra_config['port']
+)
+
+CASSANDRA_SESSION = CASSANDRA_CLIENT.connect(cassandra_config['keyspace'])

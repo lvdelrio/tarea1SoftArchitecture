@@ -1,9 +1,6 @@
-class Review
-  include Cequel::Record
-  
-  key :id, :timeuuid, auto: true
-  key :book_id, :timeuuid
-  column :review_text, :text
-  column :score, :int
-  column :up_votes, :int
+class Review < CassandraRecord
+  def self.create(attributes)
+    attributes[:id] ||= SecureRandom.uuid
+    super(attributes)
+  end
 end
