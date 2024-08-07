@@ -12,6 +12,17 @@ class CassandraRecord
     CASSANDRA_SESSION.execute(query, arguments: values)
   end
 
+  def self.format_value(value)
+    case value
+    when Cassandra::Uuid
+      value
+    when Time, DateTime, Date
+      value.strftime('%Y-%m-%d')
+    else
+      value
+      end
+    end
+
   def self.find(id)
     result = CASSANDRA_SESSION.execute("SELECT * FROM #{table_name} WHERE id = ? LIMIT 1", arguments: [id]).first
     new(result) if result
