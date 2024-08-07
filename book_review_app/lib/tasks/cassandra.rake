@@ -1,13 +1,21 @@
 namespace :cassandra do
-  desc "Set up Cassandra schema"
+  desc "Reset and set up Cassandra schema"
   task setup: :environment do
-    keyspace = Rails.application.config_for(:cassandra)['keyspace']
+    config = Rails.application.config_for(:cassandra)
+    keyspace = config['keyspace']
     
-    CASSANDRA_CLIENT.connect.execute("CREATE KEYSPACE IF NOT EXISTS #{keyspace} WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }")
+    cluster = Cassandra.cluster(hosts: config['hosts'], port: config['port'])
+    session = cluster.connect
+    session.execute("DROP KEYSPACE IF EXISTS #{keyspace}")
+    puts "Dropped keyspace #{keyspace} if it existed."
+
+    session.execute("CREATE KEYSPACE #{keyspace} WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }")
+    puts "Created keyspace #{keyspace}."
+
+    session.execute("USE #{keyspace}")
     
-    CASSANDRA_SESSION.execute("USE #{keyspace}")
-    
-    CASSANDRA_SESSION.execute("CREATE TABLE IF NOT EXISTS authors (
+    # Create tables
+    session.execute("CREATE TABLE authors (
       id uuid PRIMARY KEY,
       name text,
       date_of_birth timestamp,
@@ -15,7 +23,7 @@ namespace :cassandra do
       short_description text
     )")
     
-    CASSANDRA_SESSION.execute("CREATE TABLE IF NOT EXISTS books (
+    session.execute("CREATE TABLE books (
       id uuid PRIMARY KEY,
       name text,
       summary text,
@@ -23,7 +31,7 @@ namespace :cassandra do
       number_of_sales int
     )")
     
-    CASSANDRA_SESSION.execute("CREATE TABLE IF NOT EXISTS reviews (
+    session.execute("CREATE TABLE reviews (
       id uuid PRIMARY KEY,
       book_id uuid,
       review text,
@@ -31,13 +39,13 @@ namespace :cassandra do
       up_votes int
     )")
     
-    CASSANDRA_SESSION.execute("CREATE TABLE IF NOT EXISTS yearly_sales (
+    session.execute("CREATE TABLE yearly_sales (
       id uuid PRIMARY KEY,
       book_id uuid,
       year int,
       sales int
     )")
     
-    puts "Cassandra schema setup completed."
+    puts "Cassandra schema reset and setup completed."
   end
 end
