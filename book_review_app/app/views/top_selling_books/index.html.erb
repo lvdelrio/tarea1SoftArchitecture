@@ -1,0 +1,43 @@
+<h1>Top 50 Selling Books of All Time</h1>
+
+<table id="top-selling-books">
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Book Name</th>
+      <th>Author</th>
+      <th>Total Sales</th>
+      <th>Author's Total Sales</th>
+      <th>Publication Year</th>
+      <th>Top 5 That Year?</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @top_books.each_with_index do |book, index| %>
+      <tr>
+        <td><%= index + 1 %></td>
+        <td><%= book[:name] %></td>
+        <td><%= book[:author] %></td>
+        <td><%= number_with_delimiter(book[:total_sales]) %></td>
+        <td><%= number_with_delimiter(book[:author_total_sales]) %></td>
+        <td><%= book[:publication_year] %></td>
+        <td><%= book[:top_5_that_year] ? 'Yes' : 'No' %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+</style>

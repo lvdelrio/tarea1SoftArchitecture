@@ -1,0 +1,82 @@
+<h1>Top 10 Rated Books</h1>
+
+<table id="top-rated-books">
+  <thead>
+    <tr>
+      <th>Rank</th>
+      <th>Book Name</th>
+      <th>Author</th>
+      <th>Average Score</th>
+      <th>Highest Rated Review</th>
+      <th>Lowest Rated Review</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% @top_books.each_with_index do |book, index| %>
+      <tr>
+        <td><%= index + 1 %></td>
+        <td><%= book[:name] %></td>
+        <td><%= book[:author] %></td>
+        <td><%= book[:avg_score] %></td>
+        <td>
+          <% if book[:highest_review] %>
+            Score: <%= book[:highest_review].score %><br>
+            Review: <%= truncate(book[:highest_review].review, length: 100) %>
+          <% else %>
+            No reviews yet
+          <% end %>
+        </td>
+        <td>
+          <% if book[:lowest_review] %>
+            Score: <%= book[:lowest_review].score %><br>
+            Review: <%= truncate(book[:lowest_review].review, length: 100) %>
+          <% else %>
+            No reviews yet
+          <% end %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const table = document.getElementById('top-rated-books');
+  const rows = table.querySelectorAll('tbody tr');
+
+  rows.forEach(row => {
+    row.addEventListener('click', function() {
+      const highestReview = this.querySelector('td:nth-child(5)');
+      const lowestReview = this.querySelector('td:nth-child(6)');
+
+      highestReview.classList.toggle('expanded');
+      lowestReview.classList.toggle('expanded');
+    });
+  });
+});
+</script>
+
+<style>
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  th {
+    background-color: #f2f2f2;
+  }
+  td:nth-child(5), td:nth-child(6) {
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .expanded {
+    white-space: normal;
+    max-width: none;
+  }
+</style>

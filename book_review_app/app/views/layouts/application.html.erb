@@ -1,16 +1,23 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>BookReviewApp</title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Book Review App</title>
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
-    <%= stylesheet_link_tag "application", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <%= stylesheet_link_tag 'application', media: 'all', 'data-turbolinks-track': 'reload' %>
+    <%# <%= javascript_pack_tag 'application', 'data-turbolinks-track': 'reload' %> 
   </head>
 
   <body>
+    <nav>
+      <ul>
+        <li><%= link_to 'Authors', authors_path %></li>
+        <li><%= link_to 'Top Rated Books', top_rated_books_path %></li>
+        <li><%= link_to 'Top Selling Books', top_selling_books_path %></li>
+      </ul>
+    </nav>
+
     <%= yield %>
   </body>
 </html>

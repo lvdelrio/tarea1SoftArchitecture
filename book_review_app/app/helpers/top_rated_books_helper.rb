@@ -1,0 +1,2 @@
+module TopRatedBooksHelper
+end

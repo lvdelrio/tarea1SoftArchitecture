@@ -12,4 +12,10 @@ class Book < CassandraRecord
     results = CASSANDRA_SESSION.execute(query, arguments: [author_id])
     results.map { |row| new(row) }
   end
+
+  def self.all
+    query = "SELECT * FROM books"
+    results = CASSANDRA_SESSION.execute(query)
+    results.map { |row| new(row) }
+  end
 end
