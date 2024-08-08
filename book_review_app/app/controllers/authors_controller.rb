@@ -19,4 +19,17 @@ class AuthorsController < ApplicationController
       format.json { render json: @authors }
     end
   end
+  def destroy
+    @author = Author.find(params[:id])
+    Book.by_author(@author.id).each do |book|
+      Book.delete(book.id)
+    end
+    
+    @author.destroy
+
+    respond_to do |format|
+      format.html { redirect_to authors_url, notice: 'Author was successfully deleted.' }
+      format.json { head :no_content }
+    end
+  end
 end

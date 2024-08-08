@@ -18,4 +18,14 @@ class Book < CassandraRecord
     results = CASSANDRA_SESSION.execute(query)
     results.map { |row| new(row) }
   end
+
+  def destroy
+    @book = Book.find(params[:id])
+    @book.destroy
+    respond_to do |format|
+      format.html { redirect_to books_url, notice: 'Book was successfully deleted.' }
+      format.json { head :no_content }
+    end
+  end
+  
 end
