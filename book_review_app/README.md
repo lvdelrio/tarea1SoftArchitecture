@@ -6,16 +6,13 @@ application up and running.
 Things you may want to cover:
 
 -   Ruby version
-
--   System dependencies
-
--   Configuration
+    ruby 3.3.3
 
 -   Database creation
 
     `rake cassandra:setup`
 
--   Database initialization
+-   Database initialization (Populate Database)
 
     `rake dummy_data:create`
 
