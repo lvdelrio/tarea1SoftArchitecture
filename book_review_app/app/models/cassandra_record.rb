@@ -12,6 +12,21 @@ class CassandraRecord
     
     query = "INSERT INTO #{table_name} (#{columns}) VALUES (#{placeholders})"
     CASSANDRA_SESSION.execute(query, arguments: values)
+    
+    new(attributes)
+  end
+
+  def self.find(id)
+    query = "SELECT * FROM #{table_name} WHERE id = ? LIMIT 1"
+    result = CASSANDRA_SESSION.execute(query, arguments: [id]).first
+    new(result) if result
+  end
+
+  def initialize(attributes)
+    attributes.each do |key, value|
+      instance_variable_set("@#{key}", value)
+      self.class.send(:attr_reader, key)
+    end
   end
 
   private

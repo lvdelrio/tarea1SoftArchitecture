@@ -25,34 +25,31 @@ namespace :dummy_data do
       book
     end
 
-    # puts "\nCreating dummy reviews..."
-    # books.each do |book|
-    #   rand(1..10).times do
-    #     review = Review.create(
+    puts "\nCreating dummy reviews..."
+    books.each do |book|
+      rand(1..10).times do
+        review = Review.create(
+          book_id: book.id,
+          review: Faker::Lorem.paragraph(sentence_count: 2),
+          score: Faker::Number.between(from: 1, to: 5),
+          up_votes: Faker::Number.between(from: 0, to: 1000)
+        )
+      end
+    end
 
-    #       book_id: book.id,
-    #       review: Faker::Lorem.paragraph(sentence_count: 2),
-    #       score: Faker::Number.between(from: 1, to: 5),
-    #       up_votes: Faker::Number.between(from: 0, to: 1000)
-    #     )
-    #     puts "Created review for #{book.name}"
-    #   end
-    # end
+    puts "\nCreating dummy yearly sales..."
+    books.each do |book|
+      publication_year = book.date_of_publication.year
+      (publication_year..Date.today.year).each do |year|
+        yearly_sale = YearlySale.create(
 
-    # puts "\nCreating dummy yearly sales..."
-    # books.each do |book|
-    #   publication_year = book.date_of_publication.year
-    #   (publication_year..Date.today.year).each do |year|
-    #     yearly_sale = YearlySale.create(
+          book_id: book.id,
+          year: year,
+          sales: Faker::Number.between(from: 100, to: 100000)
+        )
+      end
+    end
 
-    #       book_id: book.id,
-    #       year: year,
-    #       sales: Faker::Number.between(from: 100, to: 100000)
-    #     )
-    #     puts "Created yearly sale for #{book.name} in #{year}"
-    #   end
-    # end
-
-    # puts "\nDummy data creation completed!"
+    puts "\nDummy data creation completed!"
   end
 end
