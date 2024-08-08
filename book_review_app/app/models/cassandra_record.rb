@@ -22,6 +22,12 @@ class CassandraRecord
     new(result) if result
   end
 
+  def self.all
+    query = "SELECT * FROM #{table_name}"
+    results = CASSANDRA_SESSION.execute(query)
+    results.map { |row| new(row) }
+  end
+
   def initialize(attributes)
     attributes.each do |key, value|
       instance_variable_set("@#{key}", value)

@@ -25,6 +25,7 @@ namespace :cassandra do
     
     session.execute("CREATE TABLE books (
       id uuid PRIMARY KEY,
+      author_id uuid,
       name text,
       summary text,
       date_of_publication timestamp,

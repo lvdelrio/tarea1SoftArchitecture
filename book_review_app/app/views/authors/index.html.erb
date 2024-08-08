@@ -1,0 +1,40 @@
+<h1>Authors Table</h1>
+
+<table id="authors-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Number of Published Books</th>
+      <th>Average Score</th>
+      <th>Total Sales</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Data will be inserted here by JavaScript -->
+  </tbody>
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  axios.get('/authors.json')
+    .then(function(response) {
+      const authors = response.data;
+      const tableBody = document.querySelector('#authors-table tbody');
+      
+      authors.forEach(function(author) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${author.name}</td>
+          <td>${author.book_count}</td>
+          <td>${author.avg_score ? author.avg_score.toFixed(2) : 'N/A'}</td>
+          <td>${author.total_sales}</td>
+        `;
+        tableBody.appendChild(row);
+      });
+    })
+    .catch(function(error) {
+      console.error('Error fetching authors:', error);
+    });
+});
+</script>

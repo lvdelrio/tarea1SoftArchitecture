@@ -16,12 +16,15 @@ namespace :dummy_data do
 
     puts "\nCreating dummy books..."
     books = 100.times.map do
+      author = authors.sample  # Randomly select an author
       book = Book.create(
+        author_id: author.id,
         name: Faker::Book.title,
         summary: Faker::Lorem.paragraph(sentence_count: 3),
         date_of_publication: Faker::Date.between(from: 50.years.ago, to: Date.today).to_time,
-        number_of_sales: Faker::Number.between(from: 1000, to: 1000000).to_i
+        number_of_sales: Faker::Number.between(from: 1000, to: 1000000)
       )
+      # puts "Created book: #{book.name} by #{author.name}"
       book
     end
 
