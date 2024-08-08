@@ -28,22 +28,22 @@ namespace :cassandra do
       name text,
       summary text,
       date_of_publication timestamp,
-      number_of_sales int
+      number_of_sales bigint
     )")
     
     session.execute("CREATE TABLE reviews (
       id uuid PRIMARY KEY,
       book_id uuid,
       review text,
-      score int,
-      up_votes int
+      score bigint,
+      up_votes bigint
     )")
     
     session.execute("CREATE TABLE yearly_sales (
       id uuid PRIMARY KEY,
       book_id uuid,
-      year int,
-      sales int
+      year bigint,
+      sales bigint
     )")
     
     puts "Cassandra schema reset and setup completed."
