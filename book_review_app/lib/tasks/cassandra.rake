@@ -5,7 +5,6 @@ require 'erb'
 namespace :cassandra do
   desc "Reset and set up Cassandra schema"
   task :setup do
-    # Load configuration without Rails.application
     yaml_content = ERB.new(File.read('config/cassandra.yml')).result
     config = YAML.safe_load(yaml_content, aliases: true)['development']
     keyspace = ENV['CASSANDRA_KEYSPACE'] || config['keyspace']
