@@ -67,3 +67,6 @@ yarn-debug.log*
 /storage/*
 !/storage/.keep
 /public/uploads
+book_review_app/app/assets/.DS_Store
+.DS_Store
+book_review_app/app/.DS_Store

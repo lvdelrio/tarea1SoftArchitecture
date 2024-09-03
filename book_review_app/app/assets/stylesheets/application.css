@@ -39,3 +39,30 @@
   nav ul li a:hover {
     color: #0056b3;
   }
+
+  #search-filter-form {
+    margin-bottom: 20px;
+  }
+  
+  #search-filter-form input,
+  #search-filter-form select,
+  #search-filter-form button {
+    margin-right: 10px;
+    margin-bottom: 10px;
+  }
+  
+  #books-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  #books-table th,
+  #books-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  #books-table th {
+    background-color: #f2f2f2;
+  }
