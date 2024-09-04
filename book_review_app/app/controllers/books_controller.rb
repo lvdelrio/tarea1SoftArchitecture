@@ -80,10 +80,35 @@ class BooksController < ApplicationController
       render json: { error: "Failed to delete book" }, status: :unprocessable_entity
     end
   end
+  
+  def new
+    @book = Book.new
+    @authors = Author.all
+  end
+
+  def create
+    @book = Book.new(book_params)
+    
+    if params[:author][:name].present?
+      @author = Author.create(author_params)
+      @book.author_id = @author.id
+    end
+
+    if @book.save
+      redirect_to books_path, notice: 'Book was successfully created.'
+    else
+      @authors = Author.all
+      render :new
+    end
+  end
 
   private
 
   def book_params
-    params.require(:book).permit(:name, :author_id, :summary, :date_of_publication, :number_of_sales)
+    params.require(:book).permit(:name, :summary, :date_of_publication, :number_of_sales, :author_id)
+  end
+
+  def author_params
+    params.require(:author).permit(:name, :date_of_birth, :country_of_origin, :short_description)
   end
 end

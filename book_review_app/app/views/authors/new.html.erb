@@ -1,0 +1,25 @@
+<h1>Create a New Author</h1>
+
+<%= form_with(model: @author, local: true) do |form| %>
+  <div>
+    <%= form.label :name %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div>
+    <%= form.label :date_of_birth %>
+    <%= form.date_field :date_of_birth %>
+  </div>
+
+  <div>
+    <%= form.label :country_of_origin %>
+    <%= form.text_field :country_of_origin %>
+  </div>
+
+  <div>
+    <%= form.label :short_description %>
+    <%= form.text_area :short_description %>
+  </div>
+
+  <%= form.submit "Create Author" %>
+<% end %>

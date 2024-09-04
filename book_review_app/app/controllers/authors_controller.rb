@@ -51,6 +51,21 @@ class AuthorsController < ApplicationController
       render json: { error: "Failed to delete author" }, status: :unprocessable_entity
     end
   end
+  
+  def new
+    @author = Author.new
+  end
+
+  def create
+    @author = Author.new(author_params)
+
+    if @author.save
+      redirect_to @author, notice: 'Author was successfully created.'
+    else
+      render :new
+    end
+  end
+
 
   private
 
