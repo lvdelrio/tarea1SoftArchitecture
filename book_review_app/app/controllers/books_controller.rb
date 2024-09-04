@@ -55,7 +55,11 @@ class BooksController < ApplicationController
   end
 
   def create
-    @book = Book.create(book_params)
+    book_attributes = book_params
+    book_attributes[:id] = Cassandra::Uuid::Generator.new.now
+    book_attributes[:date_of_publication] = book_attributes[:date_of_publication].to_time if book_attributes[:date_of_publication].is_a?(String)
+    
+    @book = Book.create(book_attributes)
     if @book
       render json: @book, status: :created
     else

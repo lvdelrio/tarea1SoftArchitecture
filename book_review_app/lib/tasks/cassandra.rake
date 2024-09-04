@@ -15,13 +15,18 @@ namespace :cassandra do
     session = cluster.connect
 
     begin
-      session.execute("CREATE KEYSPACE IF NOT EXISTS #{keyspace} WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }")
+      # Drop the keyspace if it exists
+      session.execute("DROP KEYSPACE IF EXISTS #{keyspace}")
+      puts "Dropped keyspace #{keyspace} if it existed."
+
+      # Create the keyspace
+      session.execute("CREATE KEYSPACE #{keyspace} WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 1 }")
       puts "Created keyspace #{keyspace}."
 
       session.execute("USE #{keyspace}")
       
       # Create tables
-      session.execute("CREATE TABLE IF NOT EXISTS authors (
+      session.execute("CREATE TABLE authors (
         id uuid PRIMARY KEY,
         name text,
         date_of_birth timestamp,
@@ -29,7 +34,7 @@ namespace :cassandra do
         short_description text
       )")
       
-      session.execute("CREATE TABLE IF NOT EXISTS books (
+      session.execute("CREATE TABLE books (
         id uuid PRIMARY KEY,
         author_id uuid,
         name text,
@@ -38,7 +43,7 @@ namespace :cassandra do
         number_of_sales bigint
       )")
       
-      session.execute("CREATE TABLE IF NOT EXISTS reviews (
+      session.execute("CREATE TABLE reviews (
         id uuid PRIMARY KEY,
         book_id uuid,
         review text,
@@ -46,7 +51,7 @@ namespace :cassandra do
         up_votes bigint
       )")
       
-      session.execute("CREATE TABLE IF NOT EXISTS yearly_sales (
+      session.execute("CREATE TABLE yearly_sales (
         id uuid PRIMARY KEY,
         book_id uuid,
         year bigint,
@@ -59,6 +64,8 @@ namespace :cassandra do
       puts "Hosts: #{hosts}"
       puts "Port: #{port}"
       raise
+    ensure
+      cluster.close if cluster
     end
   end
 end
