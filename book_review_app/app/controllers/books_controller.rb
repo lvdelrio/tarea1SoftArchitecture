@@ -48,4 +48,42 @@ class BooksController < ApplicationController
       end
     end
   end
+  # CRUD BOOKS
+  def show
+    @book = Book.find(params[:id])
+    render json: @book
+  end
+
+  def create
+    @book = Book.create(book_params)
+    if @book
+      render json: @book, status: :created
+    else
+      render json: { error: "Failed to create book" }, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    @book = Book.find(params[:id])
+    if @book.update(book_params)
+      render json: @book
+    else
+      render json: { error: "Failed to update book" }, status: :unprocessable_entity
+    end
+  end
+
+  def destroy
+    @book = Book.find(params[:id])
+    if @book.destroy
+      head :no_content
+    else
+      render json: { error: "Failed to delete book" }, status: :unprocessable_entity
+    end
+  end
+
+  private
+
+  def book_params
+    params.require(:book).permit(:name, :author_id, :summary, :date_of_publication, :number_of_sales)
+  end
 end
