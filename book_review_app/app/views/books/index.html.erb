@@ -1,0 +1,105 @@
+<h1>Books</h1>
+
+<div id="search-filter-form">
+  <input type="text" id="search-input" placeholder="Search books...">
+  <button id="search-button">Search</button>
+  
+  <select id="author-filter">
+    <option value="">All Authors</option>
+  </select>
+  <input type="number" id="min-rating-filter" min="1" max="5" step="0.1" placeholder="Min Rating">
+  <input type="date" id="publication-date-start">
+  <input type="date" id="publication-date-end">
+  <button id="apply-filters">Apply Filters</button>
+</div>
+
+<table id="books-table">
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Author</th>
+      <th>Publication Date</th>
+      <th>Average Rating</th>
+      <th>Number of Sales</th>
+    </tr>
+  </thead>
+  <tbody>
+  </tbody>
+</table>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-input');
+  const searchButton = document.getElementById('search-button');
+  const authorFilter = document.getElementById('author-filter');
+  const minRatingFilter = document.getElementById('min-rating-filter');
+  const publicationDateStart = document.getElementById('publication-date-start');
+  const publicationDateEnd = document.getElementById('publication-date-end');
+  const applyFiltersButton = document.getElementById('apply-filters');
+  const booksTable = document.getElementById('books-table').querySelector('tbody');
+
+  function fetchBooks(params = {}) {
+    const queryString = new URLSearchParams(params).toString();
+    axios.get(`/books.json?${queryString}`)
+      .then(function(response) {
+        const books = response.data;
+        booksTable.innerHTML = '';
+        
+        books.forEach(function(book) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${book.name}</td>
+            <td>${book.author_name}</td>
+            <td>${new Date(book.date_of_publication).toLocaleDateString()}</td>
+            <td>${book.average_rating ? book.average_rating.toFixed(2) : 'N/A'}</td>
+            <td>${book.number_of_sales}</td>
+          `;
+          booksTable.appendChild(row);
+        });
+      })
+      .catch(function(error) {
+        console.error('Error fetching books:', error);
+        if (error.response) {
+          console.error('Server responded with:', error.response.data);
+        }
+      });
+  }
+
+  function populateAuthors() {
+    axios.get('/authors.json')
+      .then(function(response) {
+        const authors = response.data;
+        authors.forEach(function(author) {
+          const option = document.createElement('option');
+          option.value = author.id;
+          option.textContent = author.name;
+          authorFilter.appendChild(option);
+        });
+      })
+      .catch(function(error) {
+        console.error('Error fetching authors:', error);
+      });
+  }
+
+  searchButton.addEventListener('click', function() {
+    const params = {
+      search: searchInput.value
+    };
+    fetchBooks(params);
+  });
+
+  applyFiltersButton.addEventListener('click', function() {
+    const params = {
+      author_id: authorFilter.value,
+      min_rating: minRatingFilter.value,
+      publication_date_start: publicationDateStart.value,
+      publication_date_end: publicationDateEnd.value
+    };
+    fetchBooks(params);
+  });
+
+  fetchBooks();
+  populateAuthors();
+});
+</script>

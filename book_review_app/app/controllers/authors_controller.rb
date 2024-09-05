@@ -19,17 +19,42 @@ class AuthorsController < ApplicationController
       format.json { render json: @authors }
     end
   end
+  #CDUD AUTHORS
+  def show
+    @author = Author.find(params[:id])
+    render json: @author
+  end
+
+  def create
+    @author = Author.create(author_params)
+    if @author
+      render json: @author, status: :created
+    else
+      render json: { error: "Failed to create author" }, status: :unprocessable_entity
+    end
+  end
+
+  def update
+    @author = Author.find(params[:id])
+    if @author.update(author_params)
+      render json: @author
+    else
+      render json: { error: "Failed to update author" }, status: :unprocessable_entity
+    end
+  end
+
   def destroy
     @author = Author.find(params[:id])
-    Book.by_author(@author.id).each do |book|
-      Book.delete(book.id)
+    if @author.destroy
+      head :no_content
+    else
+      render json: { error: "Failed to delete author" }, status: :unprocessable_entity
     end
-    
-    @author.destroy
+  end
 
-    respond_to do |format|
-      format.html { redirect_to authors_url, notice: 'Author was successfully deleted.' }
-      format.json { head :no_content }
-    end
+  private
+
+  def author_params
+    params.require(:author).permit(:name, :date_of_birth, :country_of_origin, :short_description)
   end
 end
