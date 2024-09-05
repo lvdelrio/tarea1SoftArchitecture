@@ -55,11 +55,29 @@ class BooksController < ApplicationController
   end
 
   def create
-    book_attributes = book_params
-    book_attributes[:id] = Cassandra::Uuid::Generator.new.now
-    book_attributes[:date_of_publication] = book_attributes[:date_of_publication].to_time if book_attributes[:date_of_publication].is_a?(String)
+    book_attributes = book_params.to_h
+    book_attributes[:date_of_publication] = book_attributes[:date_of_publication].to_time if book_attributes[:date_of_publication]
+    book_attributes[:name] = book_attributes[:name].to_s
+    book_attributes[:summary] = book_attributes[:summary].to_s
+    book_attributes[:number_of_sales] = book_attributes[:number_of_sales].to_i
     
+    author_name = book_attributes.delete(:author_name)
+    
+    if author_name.blank?
+      render json: { error: "Author name cannot be blank" }, status: :unprocessable_entity
+      return
+    end
+
+    author = Author.find_by_name(author_name)
+    
+    if author.nil?
+      render json: { error: "Author not found: #{author_name}" }, status: :unprocessable_entity
+      return
+    end
+
+    book_attributes[:author_id] = author.id
     @book = Book.create(book_attributes)
+    
     if @book
       render json: @book, status: :created
     else
@@ -88,6 +106,6 @@ class BooksController < ApplicationController
   private
 
   def book_params
-    params.require(:book).permit(:name, :author_id, :summary, :date_of_publication, :number_of_sales)
+    params.require(:book).permit(:name, :author_name, :summary, :date_of_publication, :number_of_sales)
   end
 end

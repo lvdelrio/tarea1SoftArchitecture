@@ -26,7 +26,14 @@ class AuthorsController < ApplicationController
   end
 
   def create
-    @author = Author.create(author_params)
+    author_attributes = author_params.to_h
+    author_attributes[:id] = Cassandra::Uuid::Generator.new.now
+    author_attributes[:date_of_birth] = author_attributes[:date_of_birth].to_time if author_attributes[:date_of_birth]
+    author_attributes[:name] = author_attributes[:name].to_s
+    author_attributes[:country_of_origin] = author_attributes[:country_of_origin].to_s
+    author_attributes[:short_description] = author_attributes[:short_description].to_s
+    
+    @author = Author.create(author_attributes)
     if @author
       render json: @author, status: :created
     else

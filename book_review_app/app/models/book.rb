@@ -34,4 +34,20 @@ class Book < CassandraRecord
     results = CASSANDRA_SESSION.execute(query_string, arguments: [start_date.to_time, end_date.to_time])
     results.map { |row| new(row) }
   end
+
+  def self.create_with_author_name(attributes)
+    author_name = attributes.delete(:author_name)
+    author = Author.find_by_name(author_name)
+    
+    return nil unless author
+
+    attributes[:author_id] = author.id
+    create(attributes)
+  end
+
+  def self.create(attributes)
+    attributes[:id] ||= Cassandra::Uuid::Generator.new.now
+    attributes[:date_of_publication] = attributes[:date_of_publication].to_time if attributes[:date_of_publication].is_a?(String)
+    super(attributes)
+  end
 end
