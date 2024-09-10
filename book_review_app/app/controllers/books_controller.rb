@@ -1,30 +1,32 @@
 class BooksController < ApplicationController
   def index
-    begin
-      @books = Book.all
-
+    cache_key = "books_index_#{params.to_s}"
+    @books = Rails.cache.fetch(cache_key, expires_in: 15.minutes) do
+      books = Book.all
+  
+      # Apply filters...
       if params[:search].present?
-        @books = Book.search(params[:search])
+        books = Book.search(params[:search])
       end
-
+  
       if params[:author_id].present?
-        @books = @books.select { |book| book.author_id.to_s == params[:author_id] }
+        books = books.select { |book| book.author_id.to_s == params[:author_id] }
       end
-
+  
       if params[:publication_date_start].present? && params[:publication_date_end].present?
         start_date = Date.parse(params[:publication_date_start])
         end_date = Date.parse(params[:publication_date_end])
-        @books = @books.select { |book| book.date_of_publication.to_date.between?(start_date, end_date) }
+        books = books.select { |book| book.date_of_publication.to_date.between?(start_date, end_date) }
       end
-
+  
       if params[:min_rating].present?
-        @books = @books.select do |book|
+        books = books.select do |book|
           avg_score = Review.average_score_for_book(book.id)
           avg_score >= params[:min_rating].to_f
         end
       end
-
-      @books = @books.map do |book|
+  
+      books.map do |book|
         author = Author.find(book.author_id)
         {
           id: book.id,
@@ -35,23 +37,23 @@ class BooksController < ApplicationController
           number_of_sales: book.number_of_sales
         }
       end
-
-      respond_to do |format|
-        format.html
-        format.json { render json: @books }
-      end
-    rescue => e
-      Rails.logger.error "Error in BooksController#index: #{e.message}"
-      respond_to do |format|
-        format.html { render plain: "An error occurred while processing your request.", status: :internal_server_error }
-        format.json { render json: { error: "An error occurred while processing your request." }, status: :internal_server_error }
-      end
+    end
+  
+    respond_to do |format|
+      format.html
+      format.json { render json: @books }
+    end
+  rescue => e
+    Rails.logger.error "Error in BooksController#index: #{e.message}"
+    respond_to do |format|
+      format.html { render plain: "An error occurred while processing your request.", status: :internal_server_error }
+      format.json { render json: { error: "An error occurred while processing your request." }, status: :internal_server_error }
     end
   end
   # CRUD BOOKS
   def show
-    @book = Book.find(params[:id])
-    render json: @book
+    @book = Book.cached_find(params[:id])
+    @reviews_count = @book.cached_reviews_count
   end
 
   def create
@@ -77,8 +79,9 @@ class BooksController < ApplicationController
 
     book_attributes[:author_id] = author.id
     @book = Book.create(book_attributes)
-    
+  
     if @book
+      Rails.cache.delete("books_index_#{params.to_s}")  # Invalidate index cache
       render json: @book, status: :created
     else
       render json: { error: "Failed to create book" }, status: :unprocessable_entity
@@ -88,15 +91,20 @@ class BooksController < ApplicationController
   def update
     @book = Book.find(params[:id])
     if @book.update(book_params)
-      render json: @book
+      Rails.cache.delete("book_#{@book.id}")
+      Rails.cache.delete("book_#{@book.id}_reviews_count")
+      redirect_to @book, notice: 'Book was successfully updated.'
     else
-      render json: { error: "Failed to update book" }, status: :unprocessable_entity
+      render :edit
     end
   end
-
+  
   def destroy
     @book = Book.find(params[:id])
     if @book.destroy
+      Rails.cache.delete("book_#{@book.id}")
+      Rails.cache.delete("book_#{@book.id}_reviews_count")
+      Rails.cache.delete("books_index_#{params.to_s}")  # Invalidate index cache
       head :no_content
     else
       render json: { error: "Failed to delete book" }, status: :unprocessable_entity

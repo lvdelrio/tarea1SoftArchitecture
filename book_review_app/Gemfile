@@ -69,3 +69,5 @@ gem 'faker'
 gem 'redis'
 gem 'hiredis'
 gem 'redis-rails'
+
+gem 'benchmark'
