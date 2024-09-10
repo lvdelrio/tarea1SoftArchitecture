@@ -19,10 +19,14 @@ class AuthorsController < ApplicationController
       format.json { render json: @authors }
     end
   end
-  #CDUD AUTHORS
+
   def show
-    @author = Author.find(params[:id])
-    render json: @author
+    @author = Author.cached_find(params[:id])
+    if @author
+      render json: @author
+    else
+      render json: { error: "Author not found" }, status: :not_found
+    end
   end
 
   def create
@@ -35,6 +39,8 @@ class AuthorsController < ApplicationController
     
     @author = Author.create(author_attributes)
     if @author
+      # Clear the cache for find_by_name
+      Rails.cache.delete("author_name_#{@author.name}")
       render json: @author, status: :created
     else
       render json: { error: "Failed to create author" }, status: :unprocessable_entity
@@ -43,7 +49,12 @@ class AuthorsController < ApplicationController
 
   def update
     @author = Author.find(params[:id])
+    old_name = @author.name
     if @author.update(author_params)
+      # Clear caches
+      Author.clear_cache(@author.id.to_s)
+      Rails.cache.delete("author_name_#{old_name}")
+      Rails.cache.delete("author_name_#{@author.name}")
       render json: @author
     else
       render json: { error: "Failed to update author" }, status: :unprocessable_entity
@@ -53,6 +64,9 @@ class AuthorsController < ApplicationController
   def destroy
     @author = Author.find(params[:id])
     if @author.destroy
+      # Clear caches
+      Author.clear_cache(@author.id.to_s)
+      Rails.cache.delete("author_name_#{@author.name}")
       head :no_content
     else
       render json: { error: "Failed to delete author" }, status: :unprocessable_entity
