@@ -1,0 +1,42 @@
+<h1>Edit Author</h1>
+
+<%= form_with(model: @author, local: true) do |form| %>
+  <% if @author.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@author.errors.count, "error") %> prohibited this author from being saved:</h2>
+
+      <ul>
+        <% @author.errors.full_messages.each do |message| %>
+          <li><%= message %></li>
+        <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= form.label :name %>
+    <%= form.text_field :name %>
+  </div>
+
+  <div class="field">
+    <%= form.label :date_of_birth %>
+    <%= form.date_field :date_of_birth %>
+  </div>
+
+  <div class="field">
+    <%= form.label :country_of_origin %>
+    <%= form.text_field :country_of_origin %>
+  </div>
+
+  <div class="field">
+    <%= form.label :short_description %>
+    <%= form.text_area :short_description %>
+  </div>
+
+  <div class="actions">
+    <%= form.submit %>
+  </div>
+<% end %>
+
+<%= link_to 'Show', @author %> |
+<%= link_to 'Back', authors_path %>

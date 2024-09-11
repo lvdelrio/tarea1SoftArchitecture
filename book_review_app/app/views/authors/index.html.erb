@@ -7,16 +7,15 @@
       <th>Number of Published Books</th>
       <th>Average Score</th>
       <th>Total Sales</th>
-        <td>
-          <%# <%= link_to 'Edit', edit_author_path(author) %>
-        </td>
+      <th>Actions</th>
     </tr>
   </thead>
   <tbody>
-    <!-- Data insertada por js nomas-->
+    <!-- Data inserted by JS -->
   </tbody>
-
 </table>
+
+<%= link_to 'New Author', new_author_path %>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.21.1/axios.min.js"></script>
 <script>
@@ -35,6 +34,8 @@ document.addEventListener('DOMContentLoaded', function() {
           <td>${author.avg_score ? author.avg_score.toFixed(2) : 'N/A'}</td>
           <td>${author.total_sales}</td>
           <td>
+            <a href="/authors/${encodeURIComponent(author.id)}">Show</a> |
+            <a href="/authors/${encodeURIComponent(author.id)}/edit">Edit</a> |
             <button class="delete-btn" data-author-id="${author.id}">Delete</button>
           </td>
         `;
@@ -51,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
   function deleteAuthor(authorId) {
     if (confirm('Are you sure you want to delete this author?')) {
-      axios.delete(`/authors/${authorId}`)
+      axios.delete(`/authors/${encodeURIComponent(authorId)}`)
         .then(function() {
           const row = document.querySelector(`tr[data-author-id="${authorId}"]`);
           row.remove();
@@ -62,5 +63,4 @@ document.addEventListener('DOMContentLoaded', function() {
     }
   }
 });
-
 </script>

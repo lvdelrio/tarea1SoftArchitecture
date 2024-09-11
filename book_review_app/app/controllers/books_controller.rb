@@ -50,10 +50,20 @@ class BooksController < ApplicationController
       format.json { render json: { error: "An error occurred while processing your request." }, status: :internal_server_error }
     end
   end
+  
   # CRUD BOOKS
   def show
     @book = Book.cached_find(params[:id])
     @reviews_count = @book.cached_reviews_count
+    
+    respond_to do |format|
+      format.html 
+      format.json { render json: @book }
+    end
+  end
+
+  def new
+    @book = Book.new
   end
 
   def create
@@ -78,24 +88,71 @@ class BooksController < ApplicationController
     end
 
     book_attributes[:author_id] = author.id
+    
+    # Handle cover image upload
+    if params[:book][:cover_image].present?
+      uploaded_file = params[:book][:cover_image]
+      file_name = "#{SecureRandom.uuid}_#{uploaded_file.original_filename}"
+      file_path = Rails.root.join('public', 'uploads', file_name)
+      File.open(file_path, 'wb') do |file|
+        file.write(uploaded_file.read)
+      end
+      book_attributes[:cover_image_url] = "/uploads/#{file_name}"
+    end
+    
     @book = Book.create(book_attributes)
   
     if @book
       Rails.cache.delete("books_index_#{params.to_s}")  # Invalidate index cache
-      render json: @book, status: :created
+      respond_to do |format|
+        format.html { redirect_to @book, notice: 'Book was successfully created.' }
+        format.json { render json: @book, status: :created }
+      end
     else
-      render json: { error: "Failed to create book" }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { render :new }
+        format.json { render json: { error: "Failed to create book" }, status: :unprocessable_entity }
+      end
     end
+  end
+
+  def edit
+    @book = Book.find(params[:id])
   end
 
   def update
     @book = Book.find(params[:id])
-    if @book.update(book_params)
+    book_attributes = book_params.to_h
+    
+    # Handle cover image upload
+    if params[:book][:cover_image].present?
+      uploaded_file = params[:book][:cover_image]
+      file_name = "#{SecureRandom.uuid}_#{uploaded_file.original_filename}"
+      file_path = Rails.root.join('public', 'uploads', file_name)
+      File.open(file_path, 'wb') do |file|
+        file.write(uploaded_file.read)
+      end
+      book_attributes[:cover_image_url] = "/uploads/#{file_name}"
+      
+      # Delete old image file if it exists
+      if @book.cover_image_url.present?
+        old_file_path = Rails.root.join('public', @book.cover_image_url.sub(/^\//, ''))
+        File.delete(old_file_path) if File.exist?(old_file_path)
+      end
+    end
+    
+    if @book.update(book_attributes)
       Rails.cache.delete("book_#{@book.id}")
       Rails.cache.delete("book_#{@book.id}_reviews_count")
-      redirect_to @book, notice: 'Book was successfully updated.'
+      respond_to do |format|
+        format.html { redirect_to @book, notice: 'Book was successfully updated.' }
+        format.json { render json: @book }
+      end
     else
-      render :edit
+      respond_to do |format|
+        format.html { render :edit }
+        format.json { render json: { error: "Failed to update book" }, status: :unprocessable_entity }
+      end
     end
   end
   
@@ -105,15 +162,21 @@ class BooksController < ApplicationController
       Rails.cache.delete("book_#{@book.id}")
       Rails.cache.delete("book_#{@book.id}_reviews_count")
       Rails.cache.delete("books_index_#{params.to_s}")  # Invalidate index cache
-      head :no_content
+      respond_to do |format|
+        format.html { redirect_to books_url, notice: 'Book was successfully destroyed.' }
+        format.json { head :no_content }
+      end
     else
-      render json: { error: "Failed to delete book" }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { redirect_to books_url, alert: 'Failed to delete book.' }
+        format.json { render json: { error: "Failed to delete book" }, status: :unprocessable_entity }
+      end
     end
   end
 
   private
 
   def book_params
-    params.require(:book).permit(:name, :author_name, :summary, :date_of_publication, :number_of_sales)
+    params.require(:book).permit(:name, :author_name, :summary, :date_of_publication, :number_of_sales, :cover_image)
   end
 end
