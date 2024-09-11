@@ -4,6 +4,11 @@ class Book < CassandraRecord
     attributes[:date_of_publication] = attributes[:date_of_publication].to_time if attributes[:date_of_publication].is_a?(Date)
     attributes[:author_id] ||= attributes[:author_id]
     super(attributes)
+    new_book = super(attributes)
+
+    new_book.update_elasticsearch if new_book
+
+    new_book
   end
 
   #Filtro por autor
@@ -50,4 +55,53 @@ class Book < CassandraRecord
     attributes[:date_of_publication] = attributes[:date_of_publication].to_time if attributes[:date_of_publication].is_a?(String)
     super(attributes)
   end
+
+  def self.search(query)
+    if ElasticsearchService.enabled?
+      elasticsearch_results = ElasticsearchService.search('books', query)
+      elasticsearch_results.map { |result| new(result) }
+    else
+      fallback_search(query)
+    end
+  end
+
+  def self.fallback_search(query)
+    begin
+      query_string = "SELECT * FROM books WHERE name LIKE ? OR summary LIKE ? ALLOW FILTERING"
+      results = CASSANDRA_SESSION.execute(query_string, arguments: ["%#{query}%", "%#{query}%"])
+      results.map { |row| new(row) }
+    rescue Cassandra::Errors::InvalidError => e
+      Rails.logger.error "Cassandra search error: #{e.message}"
+      []
+    end
+  end
+
+  private
+
+  def update_elasticsearch
+    document = {
+      id: id,
+      name: name,
+      summary: summary,
+      author_id: author_id,
+      date_of_publication: date_of_publication
+    }
+    ElasticsearchService.index_document('books', id, document)
+  end
+
+  def delete_from_elasticsearch
+    ElasticsearchService.delete_document('books', id)
+  end
+
+  def self.destroy(id)
+    # Find and delete the book
+    book = find(id)
+    return unless book
+
+    # Manually call after_destroy equivalent
+    book.delete_from_elasticsearch
+    super(id)
+  end
+
+  
 end

@@ -1,4 +1,5 @@
 class AuthorsController < ApplicationController
+  include Searchable
   def index
     @authors = Author.all.map do |author|
       books = Book.by_author(author.id)
@@ -19,6 +20,7 @@ class AuthorsController < ApplicationController
       format.json { render json: @authors }
     end
   end
+
   #CDUD AUTHORS
   def show
     @author = Author.find(params[:id])
