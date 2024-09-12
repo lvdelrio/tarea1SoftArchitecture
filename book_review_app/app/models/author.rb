@@ -23,4 +23,25 @@ class Author < CassandraRecord
       nil
     end
   end
+
+  #Cache
+  def self.cached_find(uuid_string)
+    Rails.cache.fetch("author_#{uuid_string}", expires_in: 1.hour) do
+      Rails.logger.info "Cache miss for Author UUID: #{uuid_string}. Querying database."
+      query = "SELECT * FROM authors WHERE id = ? LIMIT 1"
+      result = CASSANDRA_SESSION.execute(query, arguments: [Cassandra::Uuid.new(uuid_string)])
+      row = result.first
+      row ? new(row) : nil
+    end
+  end
+
+  def self.clear_cache(uuid_string)
+    Rails.cache.delete("author_#{uuid_string}")
+  end
+
+  def self.cached_find_by_name(name)
+    Rails.cache.fetch("author_name_#{name}", expires_in: 1.hour) do
+      find_by_name(name)
+    end
+  end
 end

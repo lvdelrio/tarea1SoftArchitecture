@@ -16,10 +16,29 @@ class CassandraRecord
     new(attributes)
   end
 
+  # def self.find(id)
+  #   query = "SELECT * FROM #{table_name} WHERE id = ? LIMIT 1"
+  #   result = CASSANDRA_SESSION.execute(query, arguments: [id]).first
+  #   new(result) if result
+  # end
+
   def self.find(id)
-    query = "SELECT * FROM #{table_name} WHERE id = ? LIMIT 1"
-    result = CASSANDRA_SESSION.execute(query, arguments: [id]).first
-    new(result) if result
+    begin
+      uuid = if id.is_a?(String) && id.length == 36
+               Cassandra::Uuid.new(id)
+             elsif id.is_a?(Cassandra::Uuid)
+               id
+             else
+               raise ArgumentError, "Invalid UUID format"
+             end
+      
+      query = "SELECT * FROM #{table_name} WHERE id = ? LIMIT 1"
+      result = CASSANDRA_SESSION.execute(query, arguments: [uuid]).first
+      new(result) if result
+    rescue ArgumentError, Cassandra::Errors::InvalidError => e
+      Rails.logger.error "Invalid UUID format: #{e.message}"
+      nil
+    end
   end
 
   def self.all

@@ -65,3 +65,9 @@ gem 'sorted_set'
 gem 'cassandra-driver'
 
 gem 'faker'
+
+gem 'redis'
+gem 'hiredis'
+gem 'redis-rails'
+
+gem 'benchmark'

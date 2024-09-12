@@ -19,10 +19,31 @@ class AuthorsController < ApplicationController
       format.json { render json: @authors }
     end
   end
-  #CDUD AUTHORS
+
   def show
-    @author = Author.find(params[:id])
-    render json: @author
+    begin
+      @author = Author.cached_find(params[:id].to_s)
+      if @author
+        respond_to do |format|
+          format.html
+          format.json { render json: @author }
+        end
+      else
+        respond_to do |format|
+          format.html { redirect_to authors_url, alert: 'Author not found.' }
+          format.json { render json: { error: "Author not found" }, status: :not_found }
+        end
+      end
+    rescue ArgumentError => e
+      respond_to do |format|
+        format.html { redirect_to authors_url, alert: 'Invalid author ID.' }
+        format.json { render json: { error: "Invalid author ID" }, status: :bad_request }
+      end
+    end
+  end
+
+  def new
+    @author = Author.new
   end
 
   def create
@@ -35,27 +56,64 @@ class AuthorsController < ApplicationController
     
     @author = Author.create(author_attributes)
     if @author
-      render json: @author, status: :created
+      Rails.cache.delete("author_name_#{@author.name}")
+      respond_to do |format|
+        format.html { redirect_to @author, notice: 'Author was successfully created.' }
+        format.json { render json: @author, status: :created }
+      end
     else
-      render json: { error: "Failed to create author" }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { render :new }
+        format.json { render json: { error: "Failed to create author" }, status: :unprocessable_entity }
+      end
     end
+  end
+
+  def edit
+    @author = Author.find(params[:id])
+    if @author.nil?
+      redirect_to authors_url, alert: 'Author not found or invalid ID.'
+    end
+  rescue StandardError => e
+    Rails.logger.error "Error in edit action: #{e.message}"
+    redirect_to authors_url, alert: 'An error occurred while trying to edit the author.'
   end
 
   def update
     @author = Author.find(params[:id])
+    old_name = @author.name
     if @author.update(author_params)
-      render json: @author
+      # Clear caches
+      Author.clear_cache(@author.id.to_s)
+      Rails.cache.delete("author_name_#{old_name}")
+      Rails.cache.delete("author_name_#{@author.name}")
+      respond_to do |format|
+        format.html {redirect_to @author, notice: 'Author was successfully updated.'}
+        format.json { render json: @author }
+      end
     else
-      render json: { error: "Failed to update author" }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { render :edit }
+        format.json { render json: { error: "Failed to update author" }, status: :unprocessable_entity }
+      end
     end
   end
 
   def destroy
     @author = Author.find(params[:id])
     if @author.destroy
-      head :no_content
+      # Clear caches
+      Author.clear_cache(@author.id.to_s)
+      Rails.cache.delete("author_name_#{@author.name}")
+      respond_to do |format|
+        format.html { redirect_to authors_url, notice: 'Author was successfully destroyed.' }
+        format.json { head :no_content }
+      end
     else
-      render json: { error: "Failed to delete author" }, status: :unprocessable_entity
+      respond_to do |format|
+        format.html { redirect_to authors_url, alert: 'Failed to delete author.' }
+        format.json { render json: { error: "Failed to delete author" }, status: :unprocessable_entity }
+      end
     end
   end
 
