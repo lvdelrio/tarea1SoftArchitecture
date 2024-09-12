@@ -11,10 +11,12 @@ RUN apt-get update -qq && \
 
 COPY Gemfile Gemfile.lock ./
 
-
 RUN bundle install
 
 COPY . .
+
+# Precompile assets without connecting to Cassandra
+RUN RAILS_ENV=production PRECOMPILE_ASSETS=true SECRET_KEY_BASE=dummy bundle exec rails assets:precompile
 
 COPY entrypoint.sh /usr/bin/
 RUN chmod +x /usr/bin/entrypoint.sh

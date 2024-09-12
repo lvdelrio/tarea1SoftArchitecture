@@ -289,7 +289,7 @@ DEPENDENCIES
   benchmark
   bootsnap
   capybara
-  cassandra-driver
+  cassandra-driver (~> 3.2.5)
   debug
   faker
   hiredis

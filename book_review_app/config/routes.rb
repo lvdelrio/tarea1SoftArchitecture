@@ -4,6 +4,8 @@ Rails.application.routes.draw do
   resources :reviews
   resources :yearly_sales
 
+  get '/health', to: 'health#check'
+
   get 'top_selling_books', to: 'top_selling_books#index'
   get 'top_rated_books', to: 'top_rated_books#index'
 

@@ -2,6 +2,19 @@ require "active_support/core_ext/integer/time"
 
 Rails.application.configure do
 
+  #HAproxy
+  Rails.application.config.hosts = nil
+  # config.hosts = ENV['RAILS_HOSTS'].split(',') if ENV['RAILS_HOSTS']
+  #en caso que no funcione lo de arriva
+  config.hosts = nil
+
+  # config.hosts << "web"
+  # config.hosts << "localhost"
+  # config.hosts << "app.localhost"
+  config.assets.compile = false
+  config.public_file_server.enabled = ENV['RAILS_SERVE_STATIC_FILES'].present?
+  config.force_ssl = false 
+  
   # Cache stuff
   config.cache_store = :redis_cache_store, { url: ENV.fetch("REDIS_URL") { "redis://localhost:6379/1" } }
 
@@ -50,7 +63,7 @@ Rails.application.configure do
   # config.assume_ssl = true
 
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
-  config.force_ssl = true
+  # config.force_ssl = true
 
   # Log to STDOUT by default
   config.logger = ActiveSupport::Logger.new(STDOUT)
